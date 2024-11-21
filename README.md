@@ -1,2 +1,1 @@
-# r2
-r2 - Rehkitz Retter
+# r2 ~ Rehkitz Retter
