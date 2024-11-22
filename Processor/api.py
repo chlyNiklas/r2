@@ -1,16 +1,34 @@
 import http.server as srv
 import json
+from urllib.parse import urlparse, parse_qs
+from detector import Detector, Resulter
+
+JSON = "application/json"
 
 
-# run a api with the given functions
-def run_api(get, post, port=8000):
+# run a api
+def run(detector: Detector, resulter: Resulter, port=8000):
     class RequestHandler(srv.BaseHTTPRequestHandler):
         def do_GET(self) -> None:
-            if self.path != "/results":
+            url = urlparse(self.path)
+            offset = 0
+            if url.path != "/results":
                 self.respond("Not Found".encode("utf-8"), code=404)
                 return
 
-            self.respond(get(0))
+            try:
+                offset = int(parse_qs(url.query)["offset"][0])
+            except Exception:
+                pass
+
+            print(url.params)
+            print(offset)
+
+            response = json.dumps(
+                list(map(lambda h: h.to_dict(), resulter.get_hits(offset)))
+            )
+
+            self.respond(response.encode("utf-8"), content_type=JSON)
 
         def do_POST(self) -> None:
             if self.path != "/img":
@@ -30,17 +48,12 @@ def run_api(get, post, port=8000):
 
             print(data)
 
-            code, msg = post(data)
-
-            self.respond(msg.encode("utf-8"), code=code)
-
         def respond(self, body: bytes, code=200, content_type="text/plain"):
             self.send_response(code)
             self.send_header("Content-Type", content_type)
             self.end_headers()
             self.wfile.write(body)
 
-    get = get
     server = srv.HTTPServer(("localhost", port), RequestHandler)
     print("Server running on http://localhost:" + str(port))
     server.serve_forever()
