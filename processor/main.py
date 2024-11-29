@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from PIL.Image import Image
+from PIL import Image
 from model import Hit
 import api
 import detector as d
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     res = d.Resulter()
     det = d.Detector(res)
 
-    img = Image()
+    img = Image.open("./test.jpeg")
     h = Hit()
     h.coordinates = (500, 5000)
     h.time = datetime.now()

@@ -1,9 +1,15 @@
 from datetime import datetime
 import base64
-
+from io import BytesIO
 from PIL.Image import Image
 
 TIME_FMT = "%d/%m/%y %H:%M:%S.%f"
+
+
+def imagetob64(i: Image) -> str:
+    buffered = BytesIO()
+    i.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 class Capture:
@@ -16,7 +22,7 @@ class Capture:
         return {
             "coordinates": {"x": self.coordinates[0], "y": self.coordinates[1]},
             "time": self.time.strftime(TIME_FMT),
-            "image": base64.b64encode(self.image.tobytes()).decode("utf-8"),
+            "image": imagetob64(self.image),
             "distance": self.distance,
         }
 
