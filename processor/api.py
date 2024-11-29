@@ -2,6 +2,7 @@ import http.server as srv
 import json
 from urllib.parse import urlparse, parse_qs
 from detector import Detector, Resulter
+from model import Capture
 
 JSON = "application/json"
 
@@ -35,18 +36,21 @@ def run(detector: Detector, resulter: Resulter, port=8000):
                 self.respond("Not Found".encode("utf-8"), code=404)
                 return
 
-            data = None
             try:
                 # read json from body to table
                 content_length = int(self.headers.get("Content-Length", 0))
                 post_data = self.rfile.read(content_length)
 
-                data = json.loads(post_data.decode("utf-8"))
+                flat = json.loads(post_data.decode("utf-8"))
+                data = Capture.from_dict(flat)
+                detector.calculate(data)
+
+                self.respond("ok".encode("utf-8"), 200)
+
             except Exception as e:
                 print(f"An error occurred: {e}")
+                print(e)
                 self.respond("Invalid Request".encode("utf-8"), code=400)
-
-            print(data)
 
         def respond(self, body: bytes, code=200, content_type="text/plain"):
             self.send_response(code)

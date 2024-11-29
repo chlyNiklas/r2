@@ -1,22 +1,44 @@
 from datetime import datetime
 import base64
 from io import BytesIO
-from PIL.Image import Image
+from PIL import Image
 
 TIME_FMT = "%d/%m/%y %H:%M:%S.%f"
 
 
-def imagetob64(i: Image) -> str:
+def imagetob64(i: Image.Image) -> str:
     buffered = BytesIO()
     i.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
+def imagefromb64(b64) -> Image.Image:
+    return Image.open(BytesIO(base64.b64decode(b64)))
+
+
 class Capture:
     coordinates: tuple[float, float]
     time: datetime
-    image: Image
+    image: Image.Image
     distance: float
+
+    @classmethod
+    def from_dict(cls, dict):
+        obj = cls()
+        obj.coordinates = (dict["coordinates"]["x"], dict["coordinates"]["y"])
+        obj.time = datetime.strptime(dict["time"], TIME_FMT)
+        obj.image = imagefromb64(dict["image"])
+        obj.distance = float(dict["distance"])
+        return obj
+
+    def to_hit(self, detected: list[tuple[int, int, float]]):
+        h = Hit()
+        h.coordinates = self.coordinates
+        h.time = self.time
+        h.image = self.image
+        h.distance = self.distance
+        h.detected = detected
+        return h
 
     def to_dict(self) -> dict:
         return {

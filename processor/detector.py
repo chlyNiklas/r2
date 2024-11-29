@@ -19,4 +19,4 @@ class Detector:
         self.mutex = Lock()
 
     def calculate(self, capture: Capture):
-        pass
+        self.resulter.register(capture.to_hit([]))

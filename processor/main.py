@@ -19,9 +19,4 @@ if __name__ == "__main__":
     h.distance = 5
 
     res.register(h)
-    res.register(h)
-    res.register(h)
-    res.register(h)
-    res.register(h)
-    res.register(h)
     api.run(det, res)
