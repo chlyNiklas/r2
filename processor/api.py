@@ -22,9 +22,6 @@ def run(detector: Detector, resulter: Resulter, port=8000):
             except Exception:
                 pass
 
-            print(url.params)
-            print(offset)
-
             response = json.dumps(
                 list(map(lambda h: h.to_dict(), resulter.get_hits(offset)))
             )
@@ -48,8 +45,7 @@ def run(detector: Detector, resulter: Resulter, port=8000):
                 self.respond("ok".encode("utf-8"), 200)
 
             except Exception as e:
-                print(f"An error occurred: {e}")
-                print(e)
+                print(f"An error occurred at POST /img: {e}")
                 self.respond("Invalid Request".encode("utf-8"), code=400)
 
         def respond(self, body: bytes, code=200, content_type="text/plain"):
