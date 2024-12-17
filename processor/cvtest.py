@@ -14,16 +14,21 @@ def main():
             # Display the resulting frame
             # edge = cv2.Canny(frame, 100, 100)
             img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # convert to Grayscale
-            patches = detect_patches(img, 20)
-            # cv2.imshow("patch", patches)
+            cv2.imshow("1", img)
 
+            ## remove large patches
+            patches = detect_patches(img, 20)
+            cv2.imshow("4", patches)
             img = cv2.subtract(img, patches)
 
             img = cv2.GaussianBlur(img, (5, 5), 0)
+            cv2.imshow("2", img)
+
             ret, img = cv2.threshold(
                 img, 150, 255, cv2.THRESH_BINARY_INV
             )  # apply threshold
-            # cv2.imshow("thresh", img)
+            cv2.imshow("3", img)
+
             blobs = detect_blobs(img)
             print(len(blobs))
             frame = cv2.drawKeypoints(
