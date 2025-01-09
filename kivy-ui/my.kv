@@ -1,0 +1,78 @@
+<MyBoxLayout>:
+    BoxLayout:
+        orientation: 'horizontal'
+        canvas.before:
+            Color:
+                rgba: 1, 0, 0, 1  # Red color for the border
+            Line:
+                rectangle: self.x, self.y, self.width, self.height
+                width: 2  # Thickness of the border
+        BoxLayout:
+            orientation: 'vertical'
+            canvas.before:
+                Color:
+                    rgba: 0, 1, 0, 1  # Green color for the border
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            Label:
+                text: "Settings"
+                font_size: 64
+            Label:
+                text: "Camera View Angle    °"
+                font_size: 32
+            Label:
+                text: "Fleight height    m"
+                font_size: 32
+            Label:
+                text: "Kitz Temparatur Range"
+                font_size: 32
+            Label:
+                text: "Camera Temparatur"
+                font_size: 32
+            Label:
+                text: "Video Source    ^"
+                font_size: 32
+        AnchorLayout:
+            anchor_y: 'top'
+            size_hint_x: None
+            width: 150
+            canvas.before:
+                Color:
+                    rgba: 0, 0, 1, 1  # Blue color for the border
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: None, None
+                width: 150  # Same width as AnchorLayout
+                height: self.minimum_height  # Automatically adjusts to fit children
+                spacing: 50  # Adds spacing between items
+                padding: 50
+                Label:
+                    text: "hits"
+                    font_size: 48
+                Label:
+                    text: "hit 1"
+                    font_size: 24
+                Label:
+                    text: "hit 2"
+                    font_size: 24
+                Label:
+                    text: "hit 3"
+                    font_size: 24
+        BoxLayout:
+            orientation: 'vertical'
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 0, 1  # Yellow color for the border
+                Line:
+                    rectangle: self.x, self.y, self.width, self.height
+                    width: 2
+            Label:
+                text: "img / video flow"
+                font_size: 64
+            Label:
+                text: "Metadata"
+                font_size: 64
