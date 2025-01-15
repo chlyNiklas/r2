@@ -1,13 +1,62 @@
+import cv2
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
 from kivy.uix.label import Label
 from kivy.graphics import Color, Line
-
 from kivy.core.window import Window
+from kivy.uix.image import Image
+from kivy.clock import Clock
+from kivy.graphics.texture import Texture
+
 Window.size = (1200, 600)
 Window.top = 100
 Window.left = 200
+
+
+class KivyCamera(Image):
+    def __init__(self, **kwargs):
+        super(KivyCamera, self).__init__(**kwargs)
+        self.capture = cv2.VideoCapture(0)  # index 0 is default camera, needs to be changed to video stream (link to
+        # source selection in settings dropdown
+        self.video_sources = self.get_video_sources()
+        self.dropdown = DropDown()
+        for source in self.video_sources:
+            btn = Button(text=source, size_hint_y=None, height=20)
+            btn.bind(on_release=lambda btn: self.dropdown.select(btn.text))
+            self.dropdown.add_widget(btn)
+        self.dropdown.bind(on_select=lambda instance, x: self.update_video_source(x))
+        Clock.schedule_interval(self.update, 1.0 / 60.0)  # per 1.0 seconds update 60 times = 60fps
+
+    def get_video_sources(self):
+        sources = []
+        for i in range(3):  # maybe check for more cameras (heat, normal, night, tele)
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                sources.append(f"source {i}")
+                cap.release()
+        return sources
+
+    def update_video_source(self, source):
+        index = int(source.split(" ")[1])
+        self.capture.release()
+        self.capture = cv2.VideoCapture(index)
+
+    def update(self, dt):
+        ret, frame = self.capture.read()
+        if ret:
+            buf = cv2.flip(frame, 0).tobytes()
+            image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+            image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+            self.texture = image_texture
+
+
+class CameraApp(App):
+    def build(self):
+        return KivyCamera()
+
 
 class MyBoxLayout(BoxLayout):
     def __init__(self, **kwargs):
@@ -23,14 +72,15 @@ class MyBoxLayout(BoxLayout):
         settings_layout = BoxLayout(orientation="vertical")
         with settings_layout.canvas.before:
             Color(0, 1, 0, 1)  # Green color
-            Line(rectangle=(settings_layout.x, settings_layout.y, settings_layout.width, settings_layout.height), width=2)
+            Line(rectangle=(settings_layout.x, settings_layout.y, settings_layout.width, settings_layout.height),
+                 width=2)
 
         settings_labels = [
             "Settings",
             "Camera View Angle    °",
-            "Fleight height    m",
-            "Kitz Temparatur Range",
-            "Camera Temparatur",
+            "Flight height    m",
+            "Kitz Temperature Range",
+            "Camera Temperature",
             "Video Source    ^"
         ]
 
@@ -61,7 +111,8 @@ class MyBoxLayout(BoxLayout):
         video_metadata_layout = BoxLayout(orientation="vertical")
         with video_metadata_layout.canvas.before:
             Color(1, 1, 0, 1)  # Yellow color
-            Line(rectangle=(video_metadata_layout.x, video_metadata_layout.y, video_metadata_layout.width, video_metadata_layout.height), width=2)
+            Line(rectangle=(video_metadata_layout.x, video_metadata_layout.y, video_metadata_layout.width,
+                            video_metadata_layout.height), width=2)
 
         video_metadata_labels = ["img / video flow", "Metadata"]
 
@@ -70,9 +121,12 @@ class MyBoxLayout(BoxLayout):
 
         self.add_widget(video_metadata_layout)
 
+
 class MyApp(App):
     def build(self):
         return MyBoxLayout()
 
+
 if __name__ == "__main__":
     MyApp().run()
+    # CameraApp().run()
