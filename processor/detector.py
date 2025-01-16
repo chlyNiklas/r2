@@ -1,22 +1,17 @@
-from model import Hit, Capture
-from multiprocessing import Lock
-
-
-class Resulter:
-    def __init__(self):
-        self.hits = []
-
-    def get_hits(self, offset=0) -> list[Hit]:
-        return self.hits[offset:]
-
-    def register(self, capture: Hit):
-        self.hits.append(capture)
+import cv2
+import cvexecutor as cv
+import multiprocessing as mp
+from kivy.graphics.texture import Texture
 
 
 class Detector:
-    def __init__(self, res: Resulter):
-        self.resulter = res
-        self.mutex = Lock()
+    frame: Texture
+    cap: cv2.VideoCapture
 
-    def calculate(self, capture: Capture):
-        self.resulter.register(capture.to_hit([]))
+    def __init__(self, cap: cv2.VideoCapture):
+        self.cap = cap
+        p = mp.Process(target=cv.detect, args=[self])
+        p.start()
+
+    def getFrame(self) -> Texture:
+        return self.frame

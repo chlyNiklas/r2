@@ -1,15 +1,14 @@
 from collections.abc import Sequence
+from detector import Detector
 import numpy as np
 import cv2
 from cv2.typing import MatLike
 
 
-def main():
-    cap = cv2.VideoCapture("video.MP4")
-
-    while cap.isOpened():
+def detect(detector: Detector):
+    while detector.cap.isOpened():
         # Capture frame-by-frame
-        ret, frame = cap.read()
+        ret, frame = detector.cap.read()
         if ret:
             # Display the resulting frame
             # edge = cv2.Canny(frame, 100, 100)
@@ -70,33 +69,9 @@ def detect_blobs(img: MatLike) -> Sequence[cv2.KeyPoint]:
     # params = cv2.SimpleBlobDetector_Params()
     params = cv2.SimpleBlobDetector.Params()
 
-    # # Change thresholds
-    # params.minThreshold = 100
-    # params.maxThreshold = 2000
-    # # Filter by Area.
-    # params.filterByArea = False
-    # params.minArea = 5
-    # params.maxArea = 1000
-
-    # # Filter by Circularity
-    # params.filterByCircularity = False
-    # params.minCircularity = 0.001
-
-    # # Filter by Convexity
-    # params.filterByConvexity = False
-    # params.minConvexity = 0.87
-
-    # # Filter by Inertia
-    # params.filterByInertia = False
-    # params.minInertiaRatio = 0.01
-
     detector = cv2.SimpleBlobDetector.create()
     # Detect blobs.
     return detector.detect(img)
 
     # Draw detected blobs as red circles.
     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-
-
-if __name__ == "__main__":
-    main()

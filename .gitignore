@@ -4,5 +4,6 @@ venv
 .vscode
 */__pycache__
 *.MP4
+**/.DS_Store
 
 .idea
