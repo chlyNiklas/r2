@@ -1,16 +1,15 @@
 import cv2
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.graphics import Color, Line
+from kivy.graphics.texture import Texture
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.label import Label
-from kivy.graphics import Color, Line
-from kivy.core.window import Window
 from kivy.uix.image import Image
-from kivy.clock import Clock
-from kivy.graphics.texture import Texture
+from kivy.uix.label import Label
 
 Window.size = (1200, 600)
 Window.top = 100
@@ -31,6 +30,7 @@ class KivyCamera(Image):
         self.dropdown.bind(on_select=lambda instance, x: self.update_video_source(x))
         Clock.schedule_interval(self.update_video_stream, 1.0 / 60.0)  # per 1.0 seconds update 60 times = 60fps
 
+        self.update_meta_data_callback = None
     def get_video_sources(self):
         sources = []
         for i in range(3):  # maybe check for more cameras (heat, normal, night, tele)
@@ -59,7 +59,8 @@ class KivyCamera(Image):
 
     def update_meta_data(self):
         meta_data = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.meta_data_label.text = f'Meta Data: {meta_data}'
+        if self.update_meta_data_callback:
+            self.update_meta_data_callback(meta_data)
         Clock.schedule_once(self.update_meta_data, 1.0)
 
 
@@ -72,6 +73,7 @@ class MyBoxLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = "horizontal"
+
 
         # Add red border
         with self.canvas.before:
@@ -149,12 +151,11 @@ class MyBoxLayout(BoxLayout):
         stream_layout.add_widget(self.meta_data_label)
         self.add_widget(stream_layout)
 
-        stream_layout = BoxLayout(
-            orientation="vertical", size_hint=(0.5, 0.5), pos_hint={"x": 0, "y": 0}
-        )
-        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
-        stream_layout.add_widget(self.camera_widget)
-        self.add_widget(stream_layout)
+    def update_meta_data_label(self, meta_data):
+        self.meta_data_label.text = f'Meta Dta: {meta_data}'
+
+    def update_border(self, *args):
+        self.border.rectangle = (self.x, self.y, self.width, self.height)
 
     def update_child_border(self, instance, *args):
         instance.border.rectangle = (instance.x, instance.y, instance.width, instance.height)
@@ -167,3 +168,4 @@ class MyApp(App):
 
 if __name__ == "__main__":
     MyApp().run()
+    # CameraApp().run()
