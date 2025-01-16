@@ -120,7 +120,7 @@ class MyBoxLayout(BoxLayout):
         camera_temp_layout.add_widget(self.camera_temp_label)
         settings_layout.add_widget(camera_temp_layout)
 
-        # Blue bordered AnchorLayout (Hits panel)
+        # (Hits panel)
         hits_anchor = AnchorLayout(anchor_y="top", size_hint_x=None, width=150)
         with hits_anchor.canvas.before:
             Color(1, 1, 1, 0.5)
@@ -140,7 +140,7 @@ class MyBoxLayout(BoxLayout):
         hits_anchor.add_widget(hits_box)
         self.add_widget(hits_anchor)
 
-        # Yellow bordered BoxLayout (Video and Metadata panel)
+        # (Video and Metadata panel)
         stream_layout = BoxLayout(orientation="vertical", size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
 
         self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
