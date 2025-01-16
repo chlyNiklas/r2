@@ -29,7 +29,7 @@ class KivyCamera(Image):
             btn.bind(on_release=lambda btn: self.dropdown.select(btn.text))
             self.dropdown.add_widget(btn)
         self.dropdown.bind(on_select=lambda instance, x: self.update_video_source(x))
-        Clock.schedule_interval(self.update, 1.0 / 60.0)  # per 1.0 seconds update 60 times = 60fps
+        Clock.schedule_interval(self.update_video_stream, 1.0 / 60.0)  # per 1.0 seconds update 60 times = 60fps
 
     def get_video_sources(self):
         sources = []
@@ -45,13 +45,20 @@ class KivyCamera(Image):
         self.capture.release()
         self.capture = cv2.VideoCapture(index)
 
-    def update(self, dt):
+    def update_video_stream(self, dt):
+        # extract video stream from video cap
         ret, frame = self.capture.read()
         if ret:
+            # convert to kivy texture
             buf = cv2.flip(frame, 0).tobytes()
             image_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
             image_texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
             self.texture = image_texture
+
+    def update_meta_data(self):
+        meta_data = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.meta_data_label.text = f'Meta Data: {meta_data}'
+        Clock.schedule_once(self.update_meta_data, 1.0)
 
 
 class CameraApp(App):
@@ -82,9 +89,9 @@ class MyBoxLayout(BoxLayout):
         settings_labels = [
             "Settings",
             "Camera View Angle    °",
-            "Fleight height    m",
-            "Kitz Temparatur Range",
-            "Camera Temparatur",
+            "Flight height    m",
+            "Kitz Temperature Range",
+            "Camera Temperature",
             "Video Source    ^"
         ]
 
@@ -113,26 +120,24 @@ class MyBoxLayout(BoxLayout):
         self.add_widget(hits_anchor)
 
         # Yellow bordered BoxLayout (Video and Metadata panel)
-        video_metadata_layout = BoxLayout(orientation="vertical")
-        with video_metadata_layout.canvas.before:
-            Color(1, 1, 0, 1)  # Yellow color
-            video_metadata_layout.border = Line(rectangle=(
-            video_metadata_layout.x, video_metadata_layout.y, video_metadata_layout.width,
-            video_metadata_layout.height), width=2)
-        video_metadata_layout.bind(pos=self.update_child_border, size=self.update_child_border)
-
-        video_metadata_labels = ["img / video flow", "Metadata"]
-
-        for text in video_metadata_labels:
-            video_metadata_layout.add_widget(Label(text=text, font_size=64))
-
-        self.add_widget(video_metadata_layout)
+        stream_layout = BoxLayout(orientation="vertical", size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        with stream_layout.canvas.before:
+            Color(1, 1, 0, 1)
+            stream_layout.border = Line(rectangle=(stream_layout.x, stream_layout.y, stream_layout.width,
+                                                   stream_layout.height), width=2)
+            stream_layout.bind(pos=self.update_child_border, size=self.update_child_border)
+        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        self.meta_data_label = Label(text='Meta Data:', font_size=40)
+        stream_layout.add_widget(self.camera_widget)
+        stream_layout.add_widget(self.meta_data_label)
+        self.add_widget(stream_layout)
 
     def update_border(self, *args):
         self.border.rectangle = (self.x, self.y, self.width, self.height)
 
     def update_child_border(self, instance, *args):
         instance.border.rectangle = (instance.x, instance.y, instance.width, instance.height)
+
 
 class MyApp(App):
     def build(self):
@@ -141,4 +146,3 @@ class MyApp(App):
 
 if __name__ == "__main__":
     MyApp().run()
-    # CameraApp().run()
