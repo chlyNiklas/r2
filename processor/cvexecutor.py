@@ -40,6 +40,7 @@ def detect(detector: Detector):
             # )
             frame = drawKeyPts(frame, blobs, (0, 0, 225), 2)
 
+            detector.frame = frame
             cv2.imshow("Frame", frame)
         else:
             break

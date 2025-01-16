@@ -5,7 +5,7 @@ from kivy.graphics.texture import Texture
 
 
 class Detector:
-    frame: Texture
+    frame: cv2.typing.MatLike
     cap: cv2.VideoCapture
 
     def __init__(self, cap: cv2.VideoCapture):
@@ -14,4 +14,9 @@ class Detector:
         p.start()
 
     def getFrame(self) -> Texture:
+        buf = self.frame.tobytes()
+        image_texture = Texture.create(
+            size=(self.frame.shape[1], self.frame.shape[0]), colorfmt="bgr"
+        )
+        image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
         return self.frame
