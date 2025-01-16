@@ -83,6 +83,12 @@ class MyBoxLayout(BoxLayout):
 
         # Green bordered BoxLayout (Settings panel)
         settings_layout = BoxLayout(orientation="vertical")
+        with settings_layout.canvas.before:
+            Color(1, 1, 1, 0.5)
+            settings_layout.border = Line(rectangle=(settings_layout.x, settings_layout.y, settings_layout.width,
+                                                   settings_layout.height), width=2)
+            settings_layout.bind(pos=self.update_child_border, size=self.update_child_border)
+
         settings_layout.add_widget(Label(text="Settings", font_size=64))
         self.add_widget(settings_layout)
 
@@ -125,8 +131,9 @@ class MyBoxLayout(BoxLayout):
         with hits_anchor.canvas.before:
             Color(1, 1, 1, 0.5)
             hits_anchor.border = Line(rectangle=(hits_anchor.x, hits_anchor.y, hits_anchor.width,
-                                                 hits_anchor.height), width=2)
+                                                   hits_anchor.height), width=2)
             hits_anchor.bind(pos=self.update_child_border, size=self.update_child_border)
+
         hits_box = BoxLayout(orientation="vertical", size_hint=(1, None), spacing=100)
         hits_box.bind(minimum_height=hits_box.setter('height'))  # Dynamically adjust height based on content
 
@@ -143,6 +150,11 @@ class MyBoxLayout(BoxLayout):
         # Yellow bordered BoxLayout (Video and Metadata panel)
         stream_layout = BoxLayout(orientation="vertical", size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
 
+        with stream_layout.canvas.before:
+            Color(1, 1, 1, 0.5)
+            stream_layout.border = Line(rectangle=(stream_layout.x, stream_layout.y, stream_layout.width,
+                                                   stream_layout.height), width=2)
+            stream_layout.bind(pos=self.update_child_border, size=self.update_child_border)
         self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
         self.meta_data_label = Label(text='Meta Data:', font_size=40)
         stream_layout.add_widget(self.camera_widget)
