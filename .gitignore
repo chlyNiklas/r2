@@ -1,4 +1,7 @@
-*/venv
+**/venv
+venv
+.timer.toml
+.vscode
 */__pycache__
 *.MP4
 
