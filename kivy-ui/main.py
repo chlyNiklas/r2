@@ -4,6 +4,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.graphics import Color, Line
 from kivy.core.window import Window
@@ -120,6 +121,11 @@ class MyBoxLayout(BoxLayout):
             video_metadata_layout.add_widget(Label(text=text, font_size=64))
 
         self.add_widget(video_metadata_layout)
+
+        stream_layout = BoxLayout(orientation="vertical", size_hint=(0.5, 0.5), pos_hint={'x': 0, 'y': 0})
+        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+        stream_layout.add_widget(self.camera_widget)
+        self.add_widget(stream_layout)
 
 
 class MyApp(App):
