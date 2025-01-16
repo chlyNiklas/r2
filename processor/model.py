@@ -17,7 +17,7 @@ class Detector:
             size=(self.frame.shape[1], self.frame.shape[0]), colorfmt="bgr"
         )
         image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
-        return self.frame
+        return image_texture
 
     def imgShow(self):
         cv2.imshow("Frame", self.frame)
