@@ -67,21 +67,24 @@ class MyBoxLayout(BoxLayout):
         # Add red border
         with self.canvas.before:
             Color(1, 0, 0, 1)  # Red color
-            Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
+            self.border = Line(rectangle=(self.x, self.y, self.width, self.height), width=2)
+        self.bind(pos=self.update_border, size=self.update_border)
 
         # Green bordered BoxLayout (Settings panel)
         settings_layout = BoxLayout(orientation="vertical")
         with settings_layout.canvas.before:
             Color(0, 1, 0, 1)  # Green color
-            Line(rectangle=(settings_layout.x, settings_layout.y, settings_layout.width, settings_layout.height),
-                 width=2)
+            settings_layout.border = Line(
+                rectangle=(settings_layout.x, settings_layout.y, settings_layout.width, settings_layout.height),
+                width=2)
+        settings_layout.bind(pos=self.update_child_border, size=self.update_child_border)
 
         settings_labels = [
             "Settings",
             "Camera View Angle    °",
-            "Flight height    m",
-            "Kitz Temperature Range",
-            "Camera Temperature",
+            "Fleight height    m",
+            "Kitz Temparatur Range",
+            "Camera Temparatur",
             "Video Source    ^"
         ]
 
@@ -94,13 +97,14 @@ class MyBoxLayout(BoxLayout):
         hits_anchor = AnchorLayout(anchor_y="top", size_hint_x=None, width=150)
         with hits_anchor.canvas.before:
             Color(0, 0, 1, 1)  # Blue color
-            Line(rectangle=(hits_anchor.x, hits_anchor.y, hits_anchor.width, hits_anchor.height), width=2)
+            hits_anchor.border = Line(rectangle=(hits_anchor.x, hits_anchor.y, hits_anchor.width, hits_anchor.height),
+                                      width=2)
+        hits_anchor.bind(pos=self.update_child_border, size=self.update_child_border)
 
-        hits_box = BoxLayout(orientation="vertical", size_hint=(None, None), width=150)
-        hits_box.height = hits_box.minimum_height
-        hits_box.spacing = 50
+        hits_box = BoxLayout(orientation="vertical", size_hint=(1, None), spacing=100)
+        hits_box.bind(minimum_height=hits_box.setter('height'))  # Dynamically adjust height based on content
 
-        hits_labels = ["hits", "hit 1", "hit 2", "hit 3"]
+        hits_labels = ["", "hits", "hit 1", "hit 2", "hit 3"]
 
         for text in hits_labels:
             hits_box.add_widget(Label(text=text, font_size=48 if text == "hits" else 24))
@@ -112,8 +116,10 @@ class MyBoxLayout(BoxLayout):
         video_metadata_layout = BoxLayout(orientation="vertical")
         with video_metadata_layout.canvas.before:
             Color(1, 1, 0, 1)  # Yellow color
-            Line(rectangle=(video_metadata_layout.x, video_metadata_layout.y, video_metadata_layout.width,
-                            video_metadata_layout.height), width=2)
+            video_metadata_layout.border = Line(rectangle=(
+            video_metadata_layout.x, video_metadata_layout.y, video_metadata_layout.width,
+            video_metadata_layout.height), width=2)
+        video_metadata_layout.bind(pos=self.update_child_border, size=self.update_child_border)
 
         video_metadata_labels = ["img / video flow", "Metadata"]
 
@@ -122,11 +128,11 @@ class MyBoxLayout(BoxLayout):
 
         self.add_widget(video_metadata_layout)
 
-        stream_layout = BoxLayout(orientation="vertical", size_hint=(0.5, 0.5), pos_hint={'x': 0, 'y': 0})
-        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
-        stream_layout.add_widget(self.camera_widget)
-        self.add_widget(stream_layout)
+    def update_border(self, *args):
+        self.border.rectangle = (self.x, self.y, self.width, self.height)
 
+    def update_child_border(self, instance, *args):
+        instance.border.rectangle = (instance.x, instance.y, instance.width, instance.height)
 
 class MyApp(App):
     def build(self):
