@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import cvexecutor as cv
+import processor.cvexecutor as cv
 from kivy.graphics.texture import Texture
 
 
@@ -10,8 +10,11 @@ class Detector:
 
     def __init__(self, cap: cv2.VideoCapture):
         self.cap = cap
+        _, self.frame = cap.read()
 
     def getFrame(self) -> Texture:
+        if self.frame is None:
+            return
         buf = self.frame.tobytes()
         image_texture = Texture.create(
             size=(self.frame.shape[1], self.frame.shape[0]), colorfmt="bgr"
@@ -33,8 +36,6 @@ class Detector:
 
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # convert to Grayscale
         # cv2.imshow("1", img)
-
-        cv2.imshow("Frame", img)
 
         ## remove large patches
         patches = cv.detect_patches(img, 40)
