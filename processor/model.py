@@ -5,6 +5,8 @@ import processor.cvlib as cl
 
 from kivy.graphics.texture import Texture
 
+from processor.motion import Orienter
+
 # params for ShiTomasi corner detection
 feature_params = dict(
     maxCorners=100,
@@ -20,31 +22,18 @@ lk_params = dict(
 )
 
 
-class Cordinator:
-    x: float = 0
-    y: float = 0
 
-    def offset(self, x: float, y: float) -> None:
-        self.x += x
-        self.y += y
-        print(x, self.x, y, self.y)
-
-    def relative(self, rel: tuple[float, float]) -> tuple[float, float]:
-        return (rel[0] + self.x, rel[1] + self.y)
-
-    def absolute(self, rel: tuple[float, float]) -> tuple[float, float]:
-        return (rel[0] + self.x, rel[1] + self.y)
 
 
 class Detector:
     last_frame: MatLike | None = None
     proc_frame: MatLike | None = None
     cap: cv.VideoCapture
-    cord: Cordinator
+    cord: Orienter
 
     def __init__(self, cap: cv.VideoCapture):
         self.cap = cap
-        self.cord = Cordinator()
+        self.cord = Orienter()
 
     def getFrame(self) -> Texture:
         if self.proc_frame is None:
@@ -62,23 +51,10 @@ class Detector:
         cv.imshow("Frame", self.proc_frame)
 
     def calcMovement(self, frame: MatLike) -> None:
-        frame = cv.resize(frame, None, None, 0.5, 0.5, cv.INTER_CUBIC)
-        if self.last_frame is None:
-            self.last_frame = frame
-            return
+        if self.last_frame is not None:
+            self.cord.process(self.last_frame, frame)
 
-        try:
-            flow = cv.calcOpticalFlowFarneback(
-                self.last_frame, frame, None, 0.5, 3, 15, 3, 5, 1.2, 0
-            )
-            x = np.median(flow[..., 0]) * 2
-            y = np.median(flow[..., 1]) * 2
-            self.cord.offset(x, y)
-        except cv.error as e:
-            print(e)
-        except IndexError:
-            pass
-
+        
         self.last_frame = frame
 
     def process(self):

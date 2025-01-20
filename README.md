@@ -6,10 +6,10 @@
 
 ``` sh
 ## create a venv
-python -m venv .
+python -m venv .venv
 
 ## activate the venv
-source bin/activate
+source .venv/bin/activate
 
 ## install all dependencies
 pip install -r requirements.txt
