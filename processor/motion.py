@@ -47,7 +47,9 @@ class Orienter(Cordinator):
 
         if self.p0 is None or len(self.p0) < 10:
             new_points = cv.goodFeaturesToTrack(
-                old_frame, mask=None, **self.feature_params
+                old_frame, mask=None, **self.feature_params  # type: ignore[type-var]
+
+
             )  # type: ignore[type-var]
             if new_points is not None:
                 if self.p0 is not None:
@@ -56,7 +58,8 @@ class Orienter(Cordinator):
                     self.p0 = new_points
 
         p1, st, _ = cv.calcOpticalFlowPyrLK(
-            old_frame, new_frame, self.p0, None, **self.lk_params
+            old_frame, new_frame, self.p0, None, **self.lk_params # type: ignore[type-var]
+
         )  # type: ignore[type-var]
 
         # Select valid (tracked) points
