@@ -79,15 +79,5 @@ class Detector:
         _, img = cv.threshold(img, 200, 255, cv.THRESH_BINARY_INV)  # apply threshold
 
         blobs = cl.detect_blobs(img)
-        zs = self.cord.relative((500, 500))
-        cv.circle(
-            frame,
-            (int(zs[0]), int(zs[1])),
-            11,
-            (0, 225, 0),
-            thickness=3,
-            lineType=8,
-            shift=0,
-        )
 
         self.proc_frame = cl.drawKeyPts(frame, blobs, (0, 0, 225))
