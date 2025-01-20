@@ -1,44 +1,22 @@
 # r2 ~ Rehkitz Retter
 
+## setup 
+
+### venv
+
+``` sh
+## create a venv
+python -m venv .venv
+
+## activate the venv
+source .venv/bin/activate
+
+## install all dependencies
+pip install -r requirements.txt
+```
+
+
 ## processor
 
-## /results?offset=1
+[test video](https://cloud.schreifuchs.ch/s/6YL8GaMR7bjgPSP)
 
-Returns a list of hits. Offset, if set, determines how many entries are skipped.
-
-``` json
-[
-  {
-    "coordinates": {
-      "x": 500,
-      "y": 5000
-    },
-    "time": "22/11/24 16:41:02.502854",
-    "image": "",
-    "distance": 5,
-    "detected": [
-      {
-        "x": 3,
-        "y": 3,
-        "radius": 3
-      }
-    ]
-  },
-  {
-    "coordinates": {
-      "x": 500,
-      "y": 5000
-    },
-    "time": "22/11/24 16:41:02.502854",
-    "image": "",
-    "distance": 5,
-    "detected": [
-      {
-        "x": 3,
-        "y": 3,
-        "radius": 3
-      }
-    ]
-  }
-]
-```

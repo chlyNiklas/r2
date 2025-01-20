@@ -1,60 +1,83 @@
-from datetime import datetime
-import base64
-from io import BytesIO
-from PIL import Image
+import cv2 as cv
+from cv2.typing import MatLike
+import numpy as np
+import processor.cvlib as cl
 
-TIME_FMT = "%d/%m/%y %H:%M:%S.%f"
+from kivy.graphics.texture import Texture
 
+from processor.motion import Orienter
 
-def imagetob64(i: Image.Image) -> str:
-    buffered = BytesIO()
-    i.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+# params for ShiTomasi corner detection
+feature_params = dict(
+    maxCorners=100,
+    qualityLevel=0.3,
+    minDistance=7,
+)
 
-
-def imagefromb64(b64) -> Image.Image:
-    return Image.open(BytesIO(base64.b64decode(b64)))
-
-
-class Capture:
-    coordinates: tuple[float, float]
-    time: datetime
-    image: Image.Image
-    distance: float
-
-    @classmethod
-    def from_dict(cls, dict):
-        obj = cls()
-        obj.coordinates = (dict["coordinates"]["x"], dict["coordinates"]["y"])
-        obj.time = datetime.strptime(dict["time"], TIME_FMT)
-        obj.image = imagefromb64(dict["image"])
-        obj.distance = float(dict["distance"])
-        return obj
-
-    def to_hit(self, detected: list[tuple[int, int, float]]):
-        h = Hit()
-        h.coordinates = self.coordinates
-        h.time = self.time
-        h.image = self.image
-        h.distance = self.distance
-        h.detected = detected
-        return h
-
-    def to_dict(self) -> dict:
-        return {
-            "coordinates": {"x": self.coordinates[0], "y": self.coordinates[1]},
-            "time": self.time.strftime(TIME_FMT),
-            "image": imagetob64(self.image),
-            "distance": self.distance,
-        }
+# Parameters for lucas kanade optical flow
+lk_params = dict(
+    winSize=(15, 15),
+    maxLevel=2,
+    criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03),
+)
 
 
-class Hit(Capture):
-    detected: list[tuple[int, int, float]]  # x, y, radius
 
-    def to_dict(self) -> dict:
-        d = super().to_dict()
-        d["detected"] = list(
-            map(lambda d: {"x": d[0], "y": d[1], "radius": d[2]}, self.detected)
+
+
+class Detector:
+    last_frame: MatLike | None = None
+    proc_frame: MatLike | None = None
+    cap: cv.VideoCapture
+    cord: Orienter
+
+    def __init__(self, cap: cv.VideoCapture):
+        self.cap = cap
+        self.cord = Orienter()
+
+    def getFrame(self) -> Texture:
+        if self.proc_frame is None:
+            return Texture.create()
+        buf = self.proc_frame.tobytes()
+        image_texture = Texture.create(
+            size=(self.proc_frame.shape[1], self.proc_frame.shape[0]), colorfmt="bgr"
         )
-        return d
+        image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
+        return image_texture
+
+    def imgShow(self):
+        if self.proc_frame is None:
+            return
+        cv.imshow("Frame", self.proc_frame)
+
+    def calcMovement(self, frame: MatLike) -> None:
+        if self.last_frame is not None:
+            self.cord.process(self.last_frame, frame)
+
+        
+        self.last_frame = frame
+
+    def process(self):
+        if not self.cap.isOpened():
+            return
+
+        ret, frame = self.cap.read()
+
+        if not ret:
+            return
+
+        img = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  # convert to Grayscale
+
+        self.proc_frame = frame
+
+        self.calcMovement(img)
+
+        ## remove large patches
+        patches = cl.detect_patches(img, 40)
+        img = cv.subtract(img, patches)
+
+        _, img = cv.threshold(img, 200, 255, cv.THRESH_BINARY_INV)  # apply threshold
+
+        blobs = cl.detect_blobs(img)
+
+        self.proc_frame = cl.drawKeyPts(frame, blobs, (0, 0, 225))

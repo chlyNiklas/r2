@@ -1,4 +1,10 @@
-*/venv
+**/venv
+venv
+.vscode
+.timer.toml
 */__pycache__
+*.MP4
+*.mp4
+**/.DS_Store
 
 .idea
