@@ -59,6 +59,7 @@ class KivyCamera(Image):
                 sources.append(f"source {i}")
                 cap.release()
                 sources.append("mock: video.mp4")
+                sources.append("mock: video_o.mp4")
         return sources
 
     def update_video_source(self, source):
@@ -75,11 +76,6 @@ class KivyCamera(Image):
         # extract video stream from video cap
         self.detector.process()
         self.texture = self.detector.getFrame()
-
-
-class CameraApp(App):
-    def build(self):
-        return KivyCamera()
 
 
 class MyBoxLayout(BoxLayout):
