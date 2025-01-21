@@ -1,14 +1,21 @@
 from collections.abc import Sequence
+from kivy.uix.textinput import Texture
 import numpy as np
 import cv2
 from cv2.typing import MatLike, Scalar
+from typing import Iterable
 
 
-def drawKeyPts(frame: MatLike, keyp, color: Scalar, thickness=3) -> MatLike:
+def drawKeyPts(
+    frame: MatLike,
+    keyp: Iterable[tuple[float, float]],
+    color: Scalar,
+    thickness=3,
+    size=10,
+) -> MatLike:
     for curKey in keyp:
-        x = int(curKey.pt[0])
-        y = int(curKey.pt[1])
-        size = int(curKey.size)
+        x = int(curKey[0])
+        y = int(curKey[1])
         cv2.circle(
             frame, (x, y), size * 2, color, thickness=thickness, lineType=8, shift=0
         )
@@ -33,3 +40,22 @@ def detect_blobs(img: MatLike) -> Sequence[cv2.KeyPoint]:
 
     # Draw detected blobs as red circles.
     # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
+
+
+def to_texture(img: MatLike) -> Texture:
+    buf = img.tobytes()
+    image_texture = Texture.create(size=(img.shape[1], img.shape[0]), colorfmt="bgr")
+    image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
+    return image_texture
+
+
+def crop_to(
+    img: MatLike, center: tuple[float, float], height: int, width: int
+) -> MatLike:
+    h, w = img.shape[:2]
+    min_y = max(int(center[1] - height / 2), 0)
+    max_y = min(int(center[1] + height / 2), h)
+    min_x = max(int(center[0] - width / 2), 0)
+    max_x = min(int(center[0] + width / 2), w)
+
+    return img[min_y:max_y, min_x:max_x]
