@@ -1,6 +1,5 @@
 import cv2 as cv
 from cv2.typing import MatLike
-import numpy as np
 import processor.cvlib as cl
 
 from kivy.graphics.texture import Texture
@@ -14,13 +13,18 @@ COLOR_RED = (0, 0, 225)
 class Detector:
     last_frame: MatLike | None = None
     proc_frame: MatLike | None = None
-    cap: cv.VideoCapture
-    cord: Orienter
-    lib: Library = Library(30)
+    video_capture: cv.VideoCapture
+    coordinator: Orienter
+    captures: Library = Library(30)
 
     def __init__(self, cap: cv.VideoCapture):
-        self.cap = cap
-        self.cord = Orienter()
+        self.video_capture = cap
+        self.coordinator = Orienter()
+
+    def reset(self, cap: cv.VideoCapture):
+        self.video_capture = cap
+        self.coordinator = Orienter()
+        self.captures.kitzes = []  # empty all kitzes
 
     def getFrame(self) -> Texture:
         if self.proc_frame is None:
@@ -34,20 +38,20 @@ class Detector:
 
     def calcMovement(self, frame: MatLike) -> None:
         if self.last_frame is not None:
-            self.cord.process(self.last_frame, frame)
+            self.coordinator.process(self.last_frame, frame)
 
         self.last_frame = frame
 
     def process(self):
-        if not self.cap.isOpened():
+        if not self.video_capture.isOpened():
             return
 
-        ret, frame = self.cap.read()
+        ret, frame = self.video_capture.read()
 
         if not ret:
             return
 
-        self.lib.clean()
+        self.captures.clean()
 
         img = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  # convert to Grayscale
 
@@ -65,12 +69,14 @@ class Detector:
 
         for blob in blobs:
             c = (blob.pt[0], blob.pt[1])
-            self.lib.register(self.cord.absolute(c), cl.crop_to(frame, c, 50, 50))
+            self.captures.register(
+                self.coordinator.absolute(c), cl.crop_to(frame, c, 50, 50)
+            )
 
         def kiz_to_cord(kiz: Kitz) -> tuple[float, float]:
-            return self.cord.relative(kiz.coordinates())
+            return self.coordinator.relative(kiz.coordinates())
 
-        kizs = map(kiz_to_cord, self.lib.kitzes)
+        kizs = map(kiz_to_cord, self.captures.kitzes)
 
         self.proc_frame = cl.drawKeyPts(
             frame,

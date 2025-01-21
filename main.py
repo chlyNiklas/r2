@@ -3,7 +3,6 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Color, Line
-from kivy.graphics.texture import Texture
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -68,11 +67,11 @@ class KivyCamera(Image):
     def update_video_source(self, source):
         try:
             index = int(source.split(" ")[1])
-            self.detector.cap.release()
+            self.detector.video_capture.release()
             self.detector = Detector(cv2.VideoCapture(index))
         except ValueError:
             index = source.split(" ")[1]
-            self.detector.cap.release()
+            self.detector.video_capture.release()
             self.detector = Detector(cv2.VideoCapture(index))
 
     def update_video_stream(self, dt):
