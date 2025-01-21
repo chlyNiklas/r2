@@ -83,3 +83,5 @@ class Detector:
             kizs,
             (0, 0, 225),
         )
+    def get_kizs(self) -> list[Kitz]:
+        return self.captures.kitzes
