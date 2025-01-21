@@ -82,7 +82,7 @@ class KivyCamera(Image):
         self.texture = self.detector.getFrame()
 
 
-class MyBoxLayout(BoxLayout):
+class MainLayout(BoxLayout):
     detector: Detector
     def __init__(self, detector: Detector,**kwargs):
         super().__init__(**kwargs)
@@ -228,7 +228,7 @@ class MyBoxLayout(BoxLayout):
 class MyApp(App):
     def build(self):
         detector = Detector(cv2.VideoCapture())
-        return MyBoxLayout(detector)
+        return MainLayout(detector)
 
 
 if __name__ == "__main__":
