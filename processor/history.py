@@ -19,11 +19,12 @@ class Kitz:
         self.y = y
         self.last_update = t.time()
 
-    def update(self, x: float, y: float) -> None:
+    def update(self, x: float, y: float, img: MatLike) -> None:
         d = self.distance(x, y)
         self.dev = (self.dev * self.updated_num + d) / (self.updated_num + 1)
 
         self.x, self.y = x, y
+        self.image = img
 
         self.updated_num += 1
         self.last_update = t.time()
@@ -47,12 +48,12 @@ class Library:
     def __init__(self, max_dist: float) -> None:
         self.max_dist = max_dist
 
-    def register(self, cord: tuple[float, float]) -> None:
+    def register(self, cord: tuple[float, float], img: MatLike) -> None:
         x = round(cord[0])
         y = round(cord[1])
         for kiz in self.kitzes:
             if kiz.distance(x, y) <= self.max_dist:
-                kiz.update(x, y)
+                kiz.update(x, y, img)
                 return
 
         self.kitzes.append(Kitz(x, y))

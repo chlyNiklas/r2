@@ -25,7 +25,7 @@ class Detector:
     def getFrame(self) -> Texture:
         if self.proc_frame is None:
             return Texture.create()
-            return cl.to_texture(self.proc_frame)
+        return cl.to_texture(self.proc_frame)
 
     def imgShow(self):
         if self.proc_frame is None:
@@ -65,9 +65,7 @@ class Detector:
 
         for blob in blobs:
             c = (blob.pt[0], blob.pt[1])
-            self.lib.register(
-                self.cord.absolute(c),
-            )
+            self.lib.register(self.cord.absolute(c), cl.crop_to(frame, c, 50, 50))
 
         def kiz_to_cord(kiz: Kitz) -> tuple[float, float]:
             return self.cord.relative(kiz.coordinates())
