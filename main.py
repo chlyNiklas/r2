@@ -22,8 +22,9 @@ Window.left = 200
 class KivyCamera(Image):
     detector: Detector
 
-    def __init__(self, **kwargs):
+    def __init__(self,detector:Detector, **kwargs):
         super(KivyCamera, self).__init__(**kwargs)
+        self.detector = detector
         self.capture = cv2.VideoCapture(
             0
         )  # index 0 is default camera, needs to be changed to video stream (link to
@@ -45,6 +46,8 @@ class KivyCamera(Image):
         )
         self.source_button.bind(on_release=self.dropdown.open)  # type: ignore[type-var]
         self.add_widget(self.source_button)
+
+
         Clock.schedule_interval(
             self.update_video_stream, 1.0 / 60.0
         )  # per 1.0 seconds update 60 times = 60fps
@@ -59,20 +62,19 @@ class KivyCamera(Image):
             if cap.isOpened():
                 sources.append(f"source {i}")
                 cap.release()
-                sources.append("mock: video.mp4")
-                sources.append("mock: video_o.mp4")
-                sources.append("mock: video_clean.mp4")
+        sources.append("mock: video.mp4")
+        sources.append("mock: video_o.mp4")
+        sources.append("mock: video_clean.mp4")
         return sources
 
     def update_video_source(self, source):
+        s = None
         try:
-            index = int(source.split(" ")[1])
-            self.detector.video_capture.release()
-            self.detector = Detector(cv2.VideoCapture(index))
+            s= int(source.split(" ")[1])
         except ValueError:
-            index = source.split(" ")[1]
-            self.detector.video_capture.release()
-            self.detector = Detector(cv2.VideoCapture(index))
+            s= source.split(" ")[1]
+
+        self.detector.reset(cv2.VideoCapture(s))
 
     def update_video_stream(self, dt):
         # extract video stream from video cap
@@ -81,9 +83,11 @@ class KivyCamera(Image):
 
 
 class MyBoxLayout(BoxLayout):
-    def __init__(self, **kwargs):
+    detector: Detector
+    def __init__(self, detector: Detector,**kwargs):
         super().__init__(**kwargs)
         self.orientation = "horizontal"
+        self.detector = detector
 
         # Green bordered BoxLayout (Settings panel)
         settings_layout = BoxLayout(orientation="vertical")
@@ -194,7 +198,7 @@ class MyBoxLayout(BoxLayout):
             stream_layout.bind(  # type: ignore[type-var]
                 pos=self.update_child_border, size=self.update_child_border
             )
-        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
+        self.camera_widget = KivyCamera(self.detector,size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
         self.meta_data_label = Label(text="Meta Data:", font_size=40)
         stream_layout.add_widget(self.camera_widget)
         stream_layout.add_widget(self.meta_data_label)
@@ -223,7 +227,8 @@ class MyBoxLayout(BoxLayout):
 
 class MyApp(App):
     def build(self):
-        return MyBoxLayout()
+        detector = Detector(cv2.VideoCapture())
+        return MyBoxLayout(detector)
 
 
 if __name__ == "__main__":
