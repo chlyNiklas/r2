@@ -88,11 +88,12 @@ class MainLayout(BoxLayout):
 
     def update_hits(self, dt):
         kitz_hits = self.detector.get_kizs()
-        new_hits = [kitz for kitz in kitz_hits if
-                    numpy.any(numpy.subtract(kitz.coordinates(), (50, 50))) or
-                    numpy.any(numpy.add(kitz.coordinates(), (50, 50))) or
-                    kitz.coordinates() not in
-                    self.displayed_hits]
+        new_hits = []
+        for kitz in kitz_hits:
+            kitz_coords = kitz.coordinates()
+            if not any(numpy.linalg.norm(numpy.subtract(kitz_coords, hit)) < 50 for hit in self.displayed_hits):
+                new_hits.append(kitz)
+                self.displayed_hits.add(kitz_coords)
         for kitz in new_hits:
             self.hits_box.add_widget(Label(text=f"Kitz hit @ \n X:{kitz.x} Y:{kitz.y}", font_size=24))
             print(self.displayed_hits)
