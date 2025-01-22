@@ -12,6 +12,7 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
 
 from processor.model import Detector
 
@@ -99,6 +100,8 @@ class MainLayout(BoxLayout):
             print(self.displayed_hits)
             self.displayed_hits.add(kitz.coordinates())
 
+        # TODO: add clear button to manually clear hits
+        # TODO: add reference image to every hit so user can see what was detected
         if len(self.displayed_hits) > 5:
             self.displayed_hits.clear()
 
@@ -110,9 +113,9 @@ class MainLayout(BoxLayout):
 
         # Green bordered BoxLayout (Settings panel)
         settings_layout = BoxLayout(orientation="vertical")
-        with settings_layout.canvas.before:  # type: ignore[type-var]
+        with settings_layout.canvas.before:
             Color(1, 1, 1, 0.5)
-            settings_layout.border = Line(  # type: ignore[type-var]
+            settings_layout.border = Line(
                 rectangle=(
                     settings_layout.x,
                     settings_layout.y,
@@ -121,7 +124,7 @@ class MainLayout(BoxLayout):
                 ),
                 width=2,
             )
-            settings_layout.bind(  # type: ignore[type-var]
+            settings_layout.bind(
                 pos=self.update_child_border, size=self.update_child_border
             )
 
@@ -151,7 +154,7 @@ class MainLayout(BoxLayout):
         kitz_temp_layout.add_widget(Label(text="Kitz Temperature Range:", font_size=32))
         self.kitz_temp_slider = Slider(min=0, max=100, value=50, size_hint=(0.5, 1))
         self.kitz_temp_label = Label(text="50", font_size=32)
-        self.kitz_temp_slider.bind(value=self.update_kitz_temp_label)  # type: ignore[type-var]
+        self.kitz_temp_slider.bind(value=self.update_kitz_temp_label)
         kitz_temp_layout.add_widget(self.kitz_temp_slider)
         kitz_temp_layout.add_widget(self.kitz_temp_label)
         settings_layout.add_widget(kitz_temp_layout)
@@ -161,16 +164,16 @@ class MainLayout(BoxLayout):
         camera_temp_layout.add_widget(Label(text="Camera Temperature:", font_size=32))
         self.camera_temp_slider = Slider(min=0, max=100, value=50, size_hint=(0.5, 1))
         self.camera_temp_label = Label(text="50", font_size=32)
-        self.camera_temp_slider.bind(value=self.update_camera_temp_label)  # type: ignore[type-var]
+        self.camera_temp_slider.bind(value=self.update_camera_temp_label)
         camera_temp_layout.add_widget(self.camera_temp_slider)
         camera_temp_layout.add_widget(self.camera_temp_label)
         settings_layout.add_widget(camera_temp_layout)
 
         # (Hits panel)
         hits_anchor = AnchorLayout(anchor_y="top", size_hint_x=None, width=150)
-        with hits_anchor.canvas.before:  # type: ignore[type-var]
+        with hits_anchor.canvas.before:
             Color(1, 1, 1, 0.5)
-            hits_anchor.border = Line(  # type: ignore[type-var]
+            hits_anchor.border = Line(
                 rectangle=(
                     hits_anchor.x,
                     hits_anchor.y,
@@ -179,7 +182,7 @@ class MainLayout(BoxLayout):
                 ),
                 width=2,
             )
-            hits_anchor.bind(  # type: ignore[type-var]
+            hits_anchor.bind(
                 pos=self.update_child_border, size=self.update_child_border
             )
 
@@ -198,9 +201,9 @@ class MainLayout(BoxLayout):
             orientation="vertical", size_hint=(1, 1), pos_hint={"x": 0, "y": 0}
         )
 
-        with stream_layout.canvas.before:  # type: ignore[type-var]
+        with stream_layout.canvas.before:
             Color(1, 1, 1, 0.5)
-            stream_layout.border = Line(  # type: ignore[type-var]
+            stream_layout.border = Line(
                 rectangle=(
                     stream_layout.x,
                     stream_layout.y,
@@ -209,7 +212,7 @@ class MainLayout(BoxLayout):
                 ),
                 width=2,
             )
-            stream_layout.bind(  # type: ignore[type-var]
+            stream_layout.bind(
                 pos=self.update_child_border, size=self.update_child_border
             )
         self.camera_widget = KivyCamera(self.detector, size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
@@ -228,7 +231,7 @@ class MainLayout(BoxLayout):
         self.camera_temp_label.text = str(int(value))
 
     def update_border(self, *args):
-        self.border.rectangle = (self.x, self.y, self.width, self.height)  # type: ignore[type-var]
+        self.border.rectangle = (self.x, self.y, self.width, self.height)
 
     def update_child_border(self, instance, *args):
         instance.border.rectangle = (
