@@ -1,4 +1,5 @@
 import cv2
+import numpy
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -87,10 +88,18 @@ class MainLayout(BoxLayout):
 
     def update_hits(self, dt):
         kitz_hits = self.detector.get_kizs()
-        new_hits = [kitz for kitz in kitz_hits if kitz.coordinates() not in self.displayed_hits]
+        new_hits = [kitz for kitz in kitz_hits if
+                    numpy.any(numpy.subtract(kitz.coordinates(), (50, 50))) or
+                    numpy.any(numpy.add(kitz.coordinates(), (50, 50))) or
+                    kitz.coordinates() not in
+                    self.displayed_hits]
         for kitz in new_hits:
-            self.hits_box.add_widget(Label(text=f"Kitz hit @ {kitz.coordinates()}", font_size=24))
+            self.hits_box.add_widget(Label(text=f"Kitz hit @ \n X:{kitz.x} Y:{kitz.y}", font_size=24))
+            print(self.displayed_hits)
             self.displayed_hits.add(kitz.coordinates())
+
+        if len(self.displayed_hits) > 5:
+            self.displayed_hits.clear()
 
     def __init__(self, detector: Detector, **kwargs):
         super().__init__(**kwargs)
