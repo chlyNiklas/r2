@@ -22,7 +22,7 @@ Window.left = 200
 class KivyCamera(Image):
     detector: Detector
 
-    def __init__(self,detector:Detector, **kwargs):
+    def __init__(self, detector: Detector, **kwargs):
         super(KivyCamera, self).__init__(**kwargs)
         self.detector = detector
         self.capture = cv2.VideoCapture(
@@ -47,7 +47,6 @@ class KivyCamera(Image):
         self.source_button.bind(on_release=self.dropdown.open)  # type: ignore[type-var]
         self.add_widget(self.source_button)
 
-
         Clock.schedule_interval(
             self.update_video_stream, 1.0 / 60.0
         )  # per 1.0 seconds update 60 times = 60fps
@@ -70,9 +69,9 @@ class KivyCamera(Image):
     def update_video_source(self, source):
         s = None
         try:
-            s= int(source.split(" ")[1])
+            s = int(source.split(" ")[1])
         except ValueError:
-            s= source.split(" ")[1]
+            s = source.split(" ")[1]
 
         self.detector.reset(cv2.VideoCapture(s))
 
@@ -84,10 +83,20 @@ class KivyCamera(Image):
 
 class MainLayout(BoxLayout):
     detector: Detector
-    def __init__(self, detector: Detector,**kwargs):
+    displayed_hits: set
+
+    def update_hits(self, dt):
+        kitz_hits = self.detector.get_kizs()
+        new_hits = [kitz for kitz in kitz_hits if kitz.coordinates() not in self.displayed_hits]
+        for kitz in new_hits:
+            self.hits_box.add_widget(Label(text=f"Kitz hit @ {kitz.coordinates()}", font_size=24))
+            self.displayed_hits.add(kitz.coordinates())
+
+    def __init__(self, detector: Detector, **kwargs):
         super().__init__(**kwargs)
         self.orientation = "horizontal"
         self.detector = detector
+        self.displayed_hits = set()
 
         # Green bordered BoxLayout (Settings panel)
         settings_layout = BoxLayout(orientation="vertical")
@@ -164,20 +173,15 @@ class MainLayout(BoxLayout):
                 pos=self.update_child_border, size=self.update_child_border
             )
 
-        hits_box = BoxLayout(orientation="vertical", size_hint=(1, None), spacing=100)
-        hits_box.bind(  # type: ignore[type-var]
-            minimum_height=hits_box.setter("height")  # type: ignore[type-var]
+        self.hits_box = BoxLayout(orientation="vertical", size_hint=(1, None), spacing=100)
+        self.hits_box.bind(  # type: ignore[type-var]
+            minimum_height=self.hits_box.setter("height")  # type: ignore[type-var]
         )  # Dynamically adjust height based on content
 
-        hits_labels = ["", "hits", "hit 1", "hit 2", "hit 3"]
-
-        for text in hits_labels:
-            hits_box.add_widget(
-                Label(text=text, font_size=48 if text == "hits" else 24)
-            )
-
-        hits_anchor.add_widget(hits_box)
+        hits_anchor.add_widget(self.hits_box)
         self.add_widget(hits_anchor)
+
+        Clock.schedule_interval(self.update_hits, 1.0 / 60.0)
 
         # (Video and Metadata panel)
         stream_layout = BoxLayout(
@@ -198,7 +202,7 @@ class MainLayout(BoxLayout):
             stream_layout.bind(  # type: ignore[type-var]
                 pos=self.update_child_border, size=self.update_child_border
             )
-        self.camera_widget = KivyCamera(self.detector,size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
+        self.camera_widget = KivyCamera(self.detector, size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
         self.meta_data_label = Label(text="Meta Data:", font_size=40)
         stream_layout.add_widget(self.camera_widget)
         stream_layout.add_widget(self.meta_data_label)
@@ -224,7 +228,6 @@ class MainLayout(BoxLayout):
             instance.height,
         )
 
-
 class MyApp(App):
     def build(self):
         detector = Detector(cv2.VideoCapture())
@@ -233,4 +236,3 @@ class MyApp(App):
 
 if __name__ == "__main__":
     MyApp().run()
-    # CameraApp().run()
