@@ -39,7 +39,7 @@ class HitList(ScrollView):
 
         for kitz in self.detector.get_kizs():
             item = GridLayout(rows=1)
-            item.add_widget(OneLineListItem(text=f"Kitz @ x: {kitz.x} y: {kitz.y}"))
+            item.add_widget(OneLineListItem(text=f"Kitz @ x:{kitz.x} y:{kitz.y}"))
             img = Image()
             img.texture = kitz.get_texture()
             item.add_widget(img)
