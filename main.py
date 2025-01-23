@@ -25,7 +25,7 @@ class MainLayout(MDBoxLayout):
         video_display.size_hint = (1, 0.9)
 
         source_selector = SourceSelector(d)
-        source_selector.size_hint = (1, 0.1)
+        source_selector.size_hint = (0.1, 0.1)
         source_selector.pos_hint = {"center_x": 0.5}
 
         hit_list = HitList(d)
