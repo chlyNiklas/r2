@@ -14,9 +14,10 @@ class Kitz:
     last_update: float
     image: MatLike | None = None
 
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float, img: MatLike | None = None):
         self.x = x
         self.y = y
+        self.image = img
         self.last_update = t.time()
 
     def update(self, x: float, y: float, img: MatLike) -> None:
@@ -24,6 +25,7 @@ class Kitz:
         self.dev = (self.dev * self.updated_num + d) / (self.updated_num + 1)
 
         self.x, self.y = x, y
+
         self.image = img
 
         self.updated_num += 1
@@ -37,8 +39,8 @@ class Kitz:
 
     def get_texture(self) -> Texture:
         if self.image is None:
-            return Texture()
-        return cl.to_texture(Texture)
+            return Texture.create()
+        return cl.to_texture(self.image)
 
 
 class Library:
@@ -56,7 +58,7 @@ class Library:
                 kiz.update(x, y, img)
                 return
 
-        self.kitzes.append(Kitz(x, y))
+        self.kitzes.append(Kitz(x, y, img=img))
 
     def clean(self) -> None:
         def isGood(k: Kitz) -> bool:

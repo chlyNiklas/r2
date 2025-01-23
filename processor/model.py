@@ -1,5 +1,6 @@
 import cv2 as cv
 from cv2.typing import MatLike
+import numpy
 import processor.cvlib as cl
 
 from kivy.graphics.texture import Texture
@@ -69,11 +70,11 @@ class Detector:
 
         blobs = cl.detect_blobs(img)
 
+        # register all kitzes
         for blob in blobs:
             c = (blob.pt[0], blob.pt[1])
-            self.captures.register(
-                self.coordinator.absolute(c), cl.crop_to(frame, c, 50, 50)
-            )
+            img = numpy.copy(cl.crop_to(frame, c, 50, 50))
+            self.captures.register(self.coordinator.absolute(c), img)
 
         def kiz_to_cord(kiz: Kitz) -> tuple[float, float]:
             return self.coordinator.relative(kiz.coordinates())
@@ -87,4 +88,7 @@ class Detector:
         )
 
     def get_kizs(self) -> list[Kitz]:
-        return self.captures.kitzes
+        kzs = self.captures.kitzes
+        for k in self.captures.kitzes:
+            print(k.image is not None)
+        return kzs
