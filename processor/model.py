@@ -24,6 +24,8 @@ class Detector:
     def reset(self, cap: cv.VideoCapture):
         self.video_capture = cap
         self.coordinator = Orienter()
+        self.last_frame = None
+        self.proc_frame = None
         self.captures.kitzes = []  # empty all kitzes
 
     def getFrame(self) -> Texture:
@@ -83,5 +85,6 @@ class Detector:
             kizs,
             (0, 0, 225),
         )
+
     def get_kizs(self) -> list[Kitz]:
         return self.captures.kitzes
