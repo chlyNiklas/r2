@@ -1,3 +1,4 @@
+from typing import Any
 from kivy.core import text
 from kivy.uix.image import Image
 from kivy.uix.recycleview import ScrollView
@@ -5,8 +6,7 @@ from kivymd.uix.label.label import MDLabel
 from kivymd.uix.gridlayout import GridLayout
 from kivymd.uix.list import (
     MDList,
-    OneLineAvatarListItem,
-    OneLineIconListItem,
+    OneLineListItem,
 )
 from kivy.clock import Clock
 
@@ -14,7 +14,7 @@ from processor.model import Detector
 
 
 class HitList(ScrollView):
-    items: list[GridLayout] = []
+    items: list[Any] = []
     detector: Detector
 
     def __init__(self, d: Detector, **kwargs):
@@ -38,8 +38,8 @@ class HitList(ScrollView):
         self.clear()
 
         for kitz in self.detector.get_kizs():
-            item = GridLayout(rows=2)
-            item.add_widget(MDLabel(text=f"Kitz @ x: {kitz.x} y: {kitz.y}"))
+            item = GridLayout(rows=1)
+            item.add_widget(OneLineListItem(text=f"Kitz @ x: {kitz.x} y: {kitz.y}"))
             img = Image()
             img.texture = kitz.get_texture()
             item.add_widget(img)
