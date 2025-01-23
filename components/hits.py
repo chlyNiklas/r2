@@ -1,5 +1,8 @@
+from kivy.core import text
 from kivy.uix.image import Image
 from kivy.uix.recycleview import ScrollView
+from kivymd.uix.label.label import MDLabel
+from kivymd.uix.gridlayout import GridLayout
 from kivymd.uix.list import (
     MDList,
     OneLineAvatarListItem,
@@ -11,7 +14,7 @@ from processor.model import Detector
 
 
 class HitList(ScrollView):
-    items: list[OneLineIconListItem] = []
+    items: list[GridLayout] = []
     detector: Detector
 
     def __init__(self, d: Detector, **kwargs):
@@ -19,6 +22,7 @@ class HitList(ScrollView):
         self.detector = d
 
         self.list_view = MDList()
+        self.list_view.row_default_height = 50
 
         self.add_widget(self.list_view)
         Clock.schedule_interval(
@@ -34,7 +38,12 @@ class HitList(ScrollView):
         self.clear()
 
         for kitz in self.detector.get_kizs():
-            item = OneLineAvatarListItem(text=f"Kitz @ x: {kitz.x} y: {kitz.y}")
+            item = GridLayout(rows=2)
+            item.add_widget(MDLabel(text=f"Kitz @ x: {kitz.x} y: {kitz.y}"))
+            img = Image()
+            img.texture = kitz.get_texture()
+            item.add_widget(img)
+
             self.items.append(item)
 
         for item in self.items:

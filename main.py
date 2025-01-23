@@ -2,7 +2,7 @@ import cv2
 from kivy.core.window import Window
 from kivymd.app import MDApp
 from components.video import SourceSelector, VideoDisplay
-from components.hits import HitList
+from components.hits import HitList, HitList
 from processor.model import Detector
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.clock import Clock
