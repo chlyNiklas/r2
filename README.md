@@ -19,4 +19,5 @@ pip install -r requirements.txt
 ## processor
 
 [test video](https://cloud.schreifuchs.ch/s/6YL8GaMR7bjgPSP)
+[test_video_clean](https://cloud.schreifuchs.ch/s/wJGQNA3G6TRdrtm)
 
