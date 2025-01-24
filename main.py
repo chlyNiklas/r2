@@ -1,6 +1,8 @@
 import cv2
 from kivy.core.window import Window
 from kivymd.app import MDApp
+from kivymd.uix.label import MDLabel
+
 from components.video import SourceSelector, VideoDisplay
 from components.hits import HitList
 from processor.model import Detector
@@ -29,7 +31,9 @@ class MainLayout(MDBoxLayout):
         source_selector.pos_hint = {"center_x": 0.5}
 
         hit_list = HitList(d)
-        hit_list.size_hint = (1, 1)
+        hit_list.size_hint = (1, 0.95)
+        hits_label = MDLabel(text="Hits", halign="center", font_style="H6")
+        hits_label.size_hint = (1, 0.05)
 
         stream_container = MDBoxLayout(orientation="vertical", size_hint=(0.75, 1))
 
@@ -53,6 +57,7 @@ class MainLayout(MDBoxLayout):
         stream_card.add_widget(source_selector)
         stream_container.add_widget(stream_card)
 
+        hits_card.add_widget(hits_label)
         hits_card.add_widget(hit_list)
         hits_container.add_widget(hits_card)
 

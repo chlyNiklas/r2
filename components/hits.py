@@ -1,8 +1,6 @@
 from typing import Any
-from kivy.core import text
 from kivy.uix.image import Image
 from kivy.uix.recycleview import ScrollView
-from kivymd.uix.label.label import MDLabel
 from kivymd.uix.gridlayout import GridLayout
 from kivymd.uix.list import (
     MDList,
@@ -39,9 +37,14 @@ class HitList(ScrollView):
 
         for kitz in self.detector.get_kizs():
             item = GridLayout(rows=1)
-            item.add_widget(OneLineListItem(text=f"Kitz @ x:{kitz.x} y:{kitz.y}"))
+
+            list_item = OneLineListItem(text=f"Kitz @ x:{kitz.x} y:{kitz.y}")
+            list_item.size_hint = (0.75, None)
+            item.add_widget(list_item)
+
             img = Image()
             img.texture = kitz.get_texture()
+            img.size_hint = (0.25, None)
             item.add_widget(img)
 
             self.items.append(item)
