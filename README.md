@@ -2,9 +2,16 @@
 
 ## setup 
 
-### venv
+
+### Unix based systems (Linux, MacOS, BSD)
+
+Make sure, that you have **git** and **python** installed.
 
 ``` sh
+git clone https://github.com/chlyNiklas/r2.git
+
+cd r2
+
 ## create a venv
 python -m venv .venv
 
@@ -13,6 +20,10 @@ source .venv/bin/activate
 
 ## install all dependencies
 pip install -r requirements.txt
+
+# start the application
+python main.py
+
 ```
 
 
