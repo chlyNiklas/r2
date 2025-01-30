@@ -59,10 +59,10 @@ class Orienter(Cordinator):
         p1, st, _ = cv.calcOpticalFlowPyrLK(
             old_frame,
             new_frame,
-            self.p0,
-            None,
+            self.p0,  # type: ignore[type-var]
+            None,  # type: ignore[type-var]
             **self.lk_params,  # type: ignore[type-var]
-        )  # type: ignore[type-var]
+        )
 
         # Select valid (tracked) points
         if p1 is not None:
