@@ -88,7 +88,4 @@ class Detector:
         )
 
     def get_kizs(self) -> list[Kitz]:
-        kzs = self.captures.kitzes
-        for k in self.captures.kitzes:
-            print(k.image is not None)
-        return kzs
+        return self.captures.kitzes
