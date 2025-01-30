@@ -1,4 +1,3 @@
-from typing import Literal
 from cv2.typing import MatLike
 import numpy as np
 import cv2 as cv
@@ -9,11 +8,11 @@ class Cordinator:
     y: float = 0
 
     def offset(self, x: float, y: float) -> None:
-        self.x += x
-        self.y += y
+        self.x -= x
+        self.y -= y
 
     def relative(self, rel: tuple[float, float]) -> tuple[float, float]:
-        return (rel[0] + self.x, rel[1] + self.y)
+        return (rel[0] - self.x, rel[1] - self.y)
 
     def absolute(self, rel: tuple[float, float]) -> tuple[float, float]:
         return (rel[0] + self.x, rel[1] + self.y)
@@ -47,9 +46,9 @@ class Orienter(Cordinator):
 
         if self.p0 is None or len(self.p0) < 10:
             new_points = cv.goodFeaturesToTrack(
-                old_frame, mask=None, **self.feature_params  # type: ignore[type-var]
-
-
+                old_frame,
+                mask=None,
+                **self.feature_params,  # type: ignore[type-var]
             )  # type: ignore[type-var]
             if new_points is not None:
                 if self.p0 is not None:
@@ -58,9 +57,12 @@ class Orienter(Cordinator):
                     self.p0 = new_points
 
         p1, st, _ = cv.calcOpticalFlowPyrLK(
-            old_frame, new_frame, self.p0, None, **self.lk_params # type: ignore[type-var]
-
-        )  # type: ignore[type-var]
+            old_frame,
+            new_frame,
+            self.p0,  # type: ignore[type-var]
+            None,  # type: ignore[type-var]
+            **self.lk_params,  # type: ignore[type-var]
+        )
 
         # Select valid (tracked) points
         if p1 is not None:

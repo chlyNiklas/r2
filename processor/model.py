@@ -1,49 +1,38 @@
 import cv2 as cv
 from cv2.typing import MatLike
-import numpy as np
+import numpy
 import processor.cvlib as cl
 
 from kivy.graphics.texture import Texture
 
+from processor.history import Kitz, Library
 from processor.motion import Orienter
 
-# params for ShiTomasi corner detection
-feature_params = dict(
-    maxCorners=100,
-    qualityLevel=0.3,
-    minDistance=7,
-)
-
-# Parameters for lucas kanade optical flow
-lk_params = dict(
-    winSize=(15, 15),
-    maxLevel=2,
-    criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03),
-)
-
-
-
+COLOR_RED = (0, 0, 225)
 
 
 class Detector:
     last_frame: MatLike | None = None
     proc_frame: MatLike | None = None
-    cap: cv.VideoCapture
-    cord: Orienter
+    video_capture: cv.VideoCapture
+    coordinator: Orienter
+    captures: Library = Library(30)
 
     def __init__(self, cap: cv.VideoCapture):
-        self.cap = cap
-        self.cord = Orienter()
+        self.video_capture = cap
+        self.coordinator = Orienter()
+
+    def reset(self, cap: cv.VideoCapture):
+        self.video_capture = cap
+        self.coordinator = Orienter()
+        self.last_frame = None
+        self.proc_frame = None
+        self.captures.kitzes = []  # empty all kitzes
 
     def getFrame(self) -> Texture:
         if self.proc_frame is None:
             return Texture.create()
-        buf = self.proc_frame.tobytes()
-        image_texture = Texture.create(
-            size=(self.proc_frame.shape[1], self.proc_frame.shape[0]), colorfmt="bgr"
-        )
-        image_texture.blit_buffer(buf, colorfmt="bgr", bufferfmt="ubyte")
-        return image_texture
+        return cl.to_texture(self.proc_frame)
 
     def imgShow(self):
         if self.proc_frame is None:
@@ -52,19 +41,20 @@ class Detector:
 
     def calcMovement(self, frame: MatLike) -> None:
         if self.last_frame is not None:
-            self.cord.process(self.last_frame, frame)
+            self.coordinator.process(self.last_frame, frame)
 
-        
         self.last_frame = frame
 
     def process(self):
-        if not self.cap.isOpened():
+        if not self.video_capture.isOpened():
             return
 
-        ret, frame = self.cap.read()
+        ret, frame = self.video_capture.read()
 
         if not ret:
             return
+
+        self.captures.clean()
 
         img = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  # convert to Grayscale
 
@@ -80,4 +70,22 @@ class Detector:
 
         blobs = cl.detect_blobs(img)
 
-        self.proc_frame = cl.drawKeyPts(frame, blobs, (0, 0, 225))
+        # register all kitzes
+        for blob in blobs:
+            c = (blob.pt[0], blob.pt[1])
+            img = numpy.copy(cl.crop_to(frame, c, 50, 50))
+            self.captures.register(self.coordinator.absolute(c), img)
+
+        def kiz_to_cord(kiz: Kitz) -> tuple[float, float]:
+            return self.coordinator.relative(kiz.coordinates())
+
+        kizs = map(kiz_to_cord, self.captures.kitzes)
+
+        self.proc_frame = cl.drawKeyPts(
+            frame,
+            kizs,
+            (0, 0, 225),
+        )
+
+    def get_kizs(self) -> list[Kitz]:
+        return self.captures.kitzes

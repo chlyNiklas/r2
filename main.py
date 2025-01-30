@@ -1,232 +1,70 @@
 import cv2
-from kivy.app import App
-from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.graphics import Color, Line
-from kivy.graphics.texture import Texture
-from kivy.uix.anchorlayout import AnchorLayout
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.dropdown import DropDown
-from kivy.uix.image import Image
-from kivy.uix.label import Label
-from kivy.uix.slider import Slider
-from kivy.uix.textinput import TextInput
+from kivymd.app import MDApp
+from kivymd.uix.label import MDLabel
 
+from components.chooser import SourceSelector
+from components.video import VideoDisplay
+from components.hits import HitList
 from processor.model import Detector
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.card import MDCard
+from kivy.clock import Clock
 
 Window.size = (1200, 600)
 Window.top = 100
 Window.left = 200
 
 
-class KivyCamera(Image):
-    detector: Detector
+class MainLayout(MDBoxLayout):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        d = Detector(cv2.VideoCapture())
 
-    def __init__(self, **kwargs):
-        super(KivyCamera, self).__init__(**kwargs)
-        self.capture = cv2.VideoCapture(
-            0
-        )  # index 0 is default camera, needs to be changed to video stream (link to
-        # source selection in settings dropdown
-        self.video_sources = self.get_video_sources()
-        self.dropdown = DropDown()
-        for source in self.video_sources:
-            btn = Button(text=source, size_hint_y=None, height=20)
-            btn.bind(on_release=lambda btn: self.dropdown.select(btn.text))  # type: ignore[type-var]
+        Clock.schedule_interval(lambda _: d.process(), 1.0 / 60.0)
 
+        video_display = VideoDisplay(d)
+        video_display.size_hint = (1, 0.9)
 
-            self.dropdown.add_widget(btn)
-        self.dropdown.bind(on_select=lambda instance, x: self.update_video_source(x))  # type: ignore[type-var]
+        source_selector = SourceSelector(d)
+        source_selector.size_hint = (0.1, 0.1)
+        source_selector.pos_hint = {"center_x": 0.5}
 
-        self.source_button = Button(
-            text="Select Video Source",
-            size_hint=(None, None),
-            size=(200, 50),
-            pos_hint={"center_x": 0.5, "y": 0.1},
-        )
-        self.source_button.bind(on_release=self.dropdown.open)# type: ignore[type-var]
-        self.add_widget(self.source_button)
-        Clock.schedule_interval(
-            self.update_video_stream, 1.0 / 60.0
-        )  # per 1.0 seconds update 60 times = 60fps
+        hit_list = HitList(d)
+        hit_list.size_hint = (1, 0.95)
+        hits_label = MDLabel(text="Hits", halign="center", font_style="H6")
+        hits_label.size_hint = (1, 0.05)
 
-        self.update_meta_data_callback = None
-        self.detector = Detector(cv2.VideoCapture())
+        stream_container = MDBoxLayout(orientation="vertical", size_hint=(0.75, 1))
 
-    def get_video_sources(self):
-        sources = []
-        for i in range(3):  # maybe check for more cameras (heat, normal, night, tele)
-            cap = cv2.VideoCapture(i)
-            if cap.isOpened():
-                sources.append(f"source {i}")
-                cap.release()
-                sources.append("mock: video.mp4")
-                sources.append("mock: video_o.mp4")
-        return sources
-
-    def update_video_source(self, source):
-        try:
-            index = int(source.split(" ")[1])
-            self.detector.cap.release()
-            self.detector = Detector(cv2.VideoCapture(index))
-        except ValueError:
-            index = source.split(" ")[1]
-            self.detector.cap.release()
-            self.detector = Detector(cv2.VideoCapture(index))
-
-    def update_video_stream(self, dt):
-        # extract video stream from video cap
-        self.detector.process()
-        self.texture = self.detector.getFrame()
-
-
-class MyBoxLayout(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.orientation = "horizontal"
-
-        # Green bordered BoxLayout (Settings panel)
-        settings_layout = BoxLayout(orientation="vertical")
-        with settings_layout.canvas.before:# type: ignore[type-var]
-            Color(1, 1, 1, 0.5)
-            settings_layout.border = Line(# type: ignore[type-var]
-                rectangle=(
-                    settings_layout.x,
-                    settings_layout.y,
-                    settings_layout.width,
-                    settings_layout.height,
-                ),
-                width=2,
-            )
-            settings_layout.bind(# type: ignore[type-var]
-                pos=self.update_child_border, size=self.update_child_border
-            )
-
-        settings_layout.add_widget(Label(text="Settings", font_size=64))
-        self.add_widget(settings_layout)
-
-        # Camera View Angle
-        camera_view_angle_layout = BoxLayout(orientation="horizontal")
-        camera_view_angle_layout.add_widget(
-            Label(text="Camera View Angle in Degrees:", font_size=32)
-        )
-        self.camera_view_angle_input = TextInput(font_size=32, size_hint=(0.25, 0.5))
-        camera_view_angle_layout.add_widget(self.camera_view_angle_input)
-        settings_layout.add_widget(camera_view_angle_layout)
-
-        # Flight height
-        flight_height_layout = BoxLayout(orientation="horizontal")
-        flight_height_layout.add_widget(
-            Label(text="Flight Height in Meters:", font_size=32)
-        )
-        self.flight_height_input = TextInput(font_size=32, size_hint=(0.25, 0.5))
-        flight_height_layout.add_widget(self.flight_height_input)
-        settings_layout.add_widget(flight_height_layout)
-
-        # Kitz Temperature Range
-        kitz_temp_layout = BoxLayout(orientation="horizontal")
-        kitz_temp_layout.add_widget(Label(text="Kitz Temperature Range:", font_size=32))
-        self.kitz_temp_slider = Slider(min=0, max=100, value=50, size_hint=(0.5, 1))
-        self.kitz_temp_label = Label(text="50", font_size=32)
-        self.kitz_temp_slider.bind(value=self.update_kitz_temp_label)# type: ignore[type-var]
-        kitz_temp_layout.add_widget(self.kitz_temp_slider)
-        kitz_temp_layout.add_widget(self.kitz_temp_label)
-        settings_layout.add_widget(kitz_temp_layout)
-
-        # Camera Temperature
-        camera_temp_layout = BoxLayout(orientation="horizontal")
-        camera_temp_layout.add_widget(Label(text="Camera Temperature:", font_size=32))
-        self.camera_temp_slider = Slider(min=0, max=100, value=50, size_hint=(0.5, 1))
-        self.camera_temp_label = Label(text="50", font_size=32)
-        self.camera_temp_slider.bind(value=self.update_camera_temp_label)# type: ignore[type-var]
-        camera_temp_layout.add_widget(self.camera_temp_slider)
-        camera_temp_layout.add_widget(self.camera_temp_label)
-        settings_layout.add_widget(camera_temp_layout)
-
-        # (Hits panel)
-        hits_anchor = AnchorLayout(anchor_y="top", size_hint_x=None, width=150)
-        with hits_anchor.canvas.before:# type: ignore[type-var]
-            Color(1, 1, 1, 0.5)
-            hits_anchor.border = Line(# type: ignore[type-var]
-                rectangle=(
-                    hits_anchor.x,
-                    hits_anchor.y,
-                    hits_anchor.width,
-                    hits_anchor.height,
-                ),
-                width=2,
-            )
-            hits_anchor.bind(# type: ignore[type-var]
-                pos=self.update_child_border, size=self.update_child_border
-            )
-
-        hits_box = BoxLayout(orientation="vertical", size_hint=(1, None), spacing=100)
-        hits_box.bind(# type: ignore[type-var]
-            minimum_height=hits_box.setter("height")# type: ignore[type-var]
-        )  # Dynamically adjust height based on content
-
-        hits_labels = ["", "hits", "hit 1", "hit 2", "hit 3"]
-
-        for text in hits_labels:
-            hits_box.add_widget(
-                Label(text=text, font_size=48 if text == "hits" else 24)
-            )
-
-        hits_anchor.add_widget(hits_box)
-        self.add_widget(hits_anchor)
-
-        # (Video and Metadata panel)
-        stream_layout = BoxLayout(
-            orientation="vertical", size_hint=(1, 1), pos_hint={"x": 0, "y": 0}
+        stream_card = MDCard(
+            orientation="vertical", size_hint=(1, 1), elevation=1, radius=[0]
         )
 
-        with stream_layout.canvas.before:# type: ignore[type-var]
-            Color(1, 1, 1, 0.5)
-            stream_layout.border = Line(# type: ignore[type-var]
-                rectangle=(
-                    stream_layout.x,
-                    stream_layout.y,
-                    stream_layout.width,
-                    stream_layout.height,
-                ),
-                width=2,
-            )
-            stream_layout.bind(# type: ignore[type-var]
-                pos=self.update_child_border, size=self.update_child_border
-            )
-        self.camera_widget = KivyCamera(size_hint=(1, 1), pos_hint={"x": 0, "y": 0})
-        self.meta_data_label = Label(text="Meta Data:", font_size=40)
-        stream_layout.add_widget(self.camera_widget)
-        stream_layout.add_widget(self.meta_data_label)
-        self.add_widget(stream_layout)
+        hits_container = MDBoxLayout(orientation="vertical", size_hint=(0.25, 1))
 
-    def update_meta_data_label(self, meta_data):
-        self.meta_data_label.text = f"Meta Data: {meta_data}"
-
-    def update_kitz_temp_label(self, instance, value):
-        self.kitz_temp_label.text = str(int(value))
-
-    def update_camera_temp_label(self, instance, value):
-        self.camera_temp_label.text = str(int(value))
-
-    def update_border(self, *args):
-        self.border.rectangle = (self.x, self.y, self.width, self.height)# type: ignore[type-var]
-
-    def update_child_border(self, instance, *args):
-        instance.border.rectangle = (
-            instance.x,
-            instance.y,
-            instance.width,
-            instance.height,
+        hits_card = MDCard(
+            orientation="vertical", size_hint=(1, 1), elevation=1, radius=[0]
         )
 
+        stream_card.add_widget(video_display)
+        stream_card.add_widget(source_selector)
+        stream_container.add_widget(stream_card)
 
-class MyApp(App):
+        hits_card.add_widget(hits_label)
+        hits_card.add_widget(hit_list)
+        hits_container.add_widget(hits_card)
+
+        self.add_widget(stream_container)
+        self.add_widget(hits_container)
+
+
+class R2App(MDApp):
     def build(self):
-        return MyBoxLayout()
+        self.theme_cls.theme_style = "Light"
+        self.theme_cls.primary_palette = "BlueGray"
+        return MainLayout(orientation="horizontal", size_hint=(1, 1))
 
 
 if __name__ == "__main__":
-    MyApp().run()
-    # CameraApp().run()
+    R2App().run()
