@@ -3,7 +3,7 @@
 ## setup 
 
 
-### Unix based systems (Linux, MacOS, BSD)
+### POSIX systems (Linux, MacOS, BSD)
 
 Make sure, that you have **git** and **python** installed.
 
@@ -25,6 +25,8 @@ pip install -r requirements.txt
 python main.py
 
 ```
+
+Currently on MacOS 15.1 (Sequoia) on ARM choosing a file crashes the application, due to incompatible system API's.
 
 
 ## processor
